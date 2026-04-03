@@ -9,7 +9,7 @@
     <style>
         .cmyk-text {
             font-weight: 900;
-            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
             display: inline-block;
             min-width: 14px;
             text-align: center;
@@ -28,9 +28,7 @@
         .badge-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; }
 
         .row-spacer { border-spacing: 0 12px; border-collapse: separate; }
-        .draggable-row { cursor: grab; transition: all 0.2s ease; }
-        .draggable-row:active { cursor: grabbing; }
-        .dragging { opacity: 0.4; transform: scale(0.98); }
+        .draggable-row { transition: all 0.2s ease; }
     </style>
 </head>
 <body class="bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
@@ -46,20 +44,18 @@
 
             <div class="flex-1 max-w-md w-full relative">
                 <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                <input type="text" id="inputPesquisa" onkeyup="filtrarLista()" placeholder="Pesquisar por SELB..." 
+                <input type="text" id="inputPesquisa" onkeyup="window.filtrarLista()" placeholder="Pesquisar por SELB..." 
                 class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-14 pr-5 outline-none focus:border-blue-500 font-bold transition-all text-slate-700">
             </div>
 
             <div class="flex gap-3">
-                <a href="usuario.html" target="_blank" title="Abrir Portal do Usuário" class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl hover:bg-emerald-100 transition active:scale-95 flex items-center gap-2 font-bold text-xs border border-emerald-100">
+                <a href="usuario.html" target="_blank" class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl hover:bg-emerald-100 transition active:scale-95 flex items-center gap-2 font-bold text-xs border border-emerald-100">
                     <i class="fas fa-external-link-alt"></i> PORTAL
                 </a>
-                
-                <button onclick="forcarAtualizacaoGeral()" title="Sincronizar SNMP" class="bg-slate-100 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
+                <button onclick="window.forcarAtualizacaoGeral()" class="bg-slate-100 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
                     <i id="iconSync" class="fas fa-sync-alt text-slate-600"></i>
                 </button>
-                
-                <button onclick="abrirModal()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-extrabold shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95">
+                <button onclick="window.abrirModal()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-extrabold shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95">
                     <i class="fas fa-plus mr-2"></i>NOVO CADASTRO
                 </button>
             </div>
@@ -86,8 +82,8 @@
     <div id="modalCadastro" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white">
             <div class="bg-slate-900 p-8 text-white flex justify-between items-center">
-                <h2 id="tituloModal" class="font-black uppercase tracking-tight text-xl">Configuração</h2>
-                <button onclick="fecharModal()" class="text-3xl leading-none hover:text-red-400 transition">&times;</button>
+                <h2 class="font-black uppercase tracking-tight text-xl">Configuração</h2>
+                <button onclick="window.fecharModal()" class="text-3xl leading-none hover:text-red-400 transition">&times;</button>
             </div>
             <form id="formImpressora" class="p-8 space-y-5">
                 <input type="hidden" id="editIndex" value="-1">
@@ -116,225 +112,204 @@
         <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
             <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
                 <h3 id="chatNome" class="font-bold uppercase tracking-tight">Suporte Setorial</h3>
-                <div class="flex gap-4">
-                    <button onclick="limparChat()" class="hover:text-red-200 transition"><i class="fas fa-trash-alt"></i></button>
-                    <button onclick="fecharChat()" class="text-3xl">&times;</button>
-                </div>
+                <button onclick="window.fecharChat()" class="text-3xl">&times;</button>
             </div>
             <div id="boxMensagens" class="chat-container"></div>
             <div class="p-4 bg-slate-50 border-t flex gap-2">
-                <input type="text" id="inputMsg" onkeyup="if(event.key==='Enter') enviarMensagem()" placeholder="Digite sua resposta..." class="flex-1 bg-white border-2 border-slate-200 rounded-2xl px-5 outline-none focus:border-blue-500 font-medium">
-                <button onclick="enviarMensagem()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100 active:scale-90 transition"><i class="fas fa-paper-plane"></i></button>
+                <input type="text" id="inputMsg" onkeyup="if(event.key==='Enter') window.enviarMensagem()" placeholder="Digite sua resposta..." class="flex-1 bg-white border-2 border-slate-200 rounded-2xl px-5 outline-none focus:border-blue-500 font-medium">
+                <button onclick="window.enviarMensagem()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100 active:scale-90 transition"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
     <script type="module">
-    // 1. Importação dos módulos do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // 2. COLE SUAS CONFIGURAÇÕES AQUI:
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        // COLOQUE SEU CONFIG AQUI ABAIXO:
+        const firebaseConfig = {
+          apiKey: "AIzaSyDIsYmxPmdl0t0G9gnhXLvU_soJOadcHnM",
+          authDomain: "controle-cmyk.firebaseapp.com",
+          projectId: "controle-cmyk",
+          storageBucket: "controle-cmyk.firebasestorage.app",
+          messagingSenderId: "96391765939",
+          appId: "1:96391765939:web:dd4cee41d484f60adcf5c6"
+       };
 
-// Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDIsYmxPmdl0t0G9gnhXLvU_soJOadcHnM",
-      authDomain: "controle-cmyk.firebaseapp.com",
-      projectId: "controle-cmyk",
-      storageBucket: "controle-cmyk.firebasestorage.app",
-      messagingSenderId: "96391765939",
-      appId: "1:96391765939:web:dd4cee41d484f60adcf5c6"
-    };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const impressorasRef = ref(db, 'estoque_toners');
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const impressorasRef = ref(db, 'estoque_toners');
+        let impressoras = [];
+        let idxAtivo = -1;
 
-    let impressoras = [];
-    let idxAtivo = -1;
-    let dragSrcEl = null;
-
-    // 4. Sincronização em Tempo Real (Substitui a carga inicial do localStorage)
-    onValue(impressorasRef, (snapshot) => {
-        const data = snapshot.val();
-        impressoras = data || [];
-        renderizarLista();
-    });
-
-    function salvarNoFirebase() {
-        set(impressorasRef, impressoras);
-    }
-
-    // --- FUNÇÕES CORE (Ajustadas para Firebase) ---
-
-    function renderizarLista(listaFiltrada = null) {
-        const corpo = document.getElementById('lista-corpo');
-        if (!corpo) return;
-        corpo.innerHTML = '';
-        const itensParaExibir = listaFiltrada || impressoras;
-
-        itensParaExibir.forEach((imp) => {
-            const idx = impressoras.findIndex(i => i.selb === imp.selb);
-            const n = imp.niveis || {k:0, c:0, m:0, y:0};
-            const e = imp.estoque || {k:0, c:0, m:0, y:0};
-            const temNovas = imp.chat && imp.chat.some(m => m.autor === 'Usuario' && !m.lida);
-
-            const criarBarra = (letra, valor, classe, corBarra) => `
-                <div class="flex items-center gap-2 mb-1 justify-end pr-4">
-                    <span class="cmyk-text ${classe} scale-75">${letra}</span>
-                    <div class="mini-bar-container"><div class="${corBarra}" style="width: ${valor}%; height: 100%;"></div></div>
-                    <span class="text-[9px] font-black w-7 text-left text-slate-500">${valor}%</span>
-                </div>`;
-
-            const criarEstoque = (letra, qtd, classe) => `
-                <div class="flex items-center gap-1 justify-center">
-                    <span class="cmyk-text ${classe} scale-75">${letra}</span>
-                    <span class="font-black text-slate-700 text-xs">: ${qtd}</span>
-                </div>`;
-
-            let colSNMP = criarBarra('K', n.k, 'k-color', 'bg-black');
-            let colEstoque = criarEstoque('K', e.k, 'k-color');
-
-            if (imp.tipo === 'Color') {
-                colSNMP += criarBarra('C', n.c, 'c-color', 'bg-cyan-400') + 
-                           criarBarra('M', n.m, 'm-color', 'bg-magenta-500') + 
-                           criarBarra('Y', n.y, 'y-color', 'bg-yellow-400');
-                colEstoque = `<div class="grid grid-cols-2 gap-x-4">${criarEstoque('K', e.k, 'k-color')}${criarEstoque('C', e.c, 'c-color')}${criarEstoque('M', e.m, 'm-color')}${criarEstoque('Y', e.y, 'y-color')}</div>`;
-            }
-
-            const row = document.createElement('tr');
-            row.className = "draggable-row bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all border border-transparent";
-            row.style.borderRadius = "1.5rem";
-            row.setAttribute('draggable', listaFiltrada ? 'false' : 'true');
-            row.setAttribute('data-index', idx);
-            
-            row.innerHTML = `
-                <td class="p-5 text-slate-300 text-center rounded-l-[1.5rem]"><i class="fas fa-grip-vertical"></i></td>
-                <td class="p-5">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full ${imp.status==='Online'?'bg-emerald-500 animate-pulse':'bg-rose-400'}"></span>
-                        <span class="font-black text-[10px] uppercase ${imp.status==='Online'?'text-emerald-600':'text-rose-500'}">${imp.status || 'OFF'}</span>
-                    </div>
-                </td>
-                <td class="p-5">
-                    <div class="font-mono font-black text-blue-600 text-sm tracking-tighter">${imp.selb}</div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1">
-                        <a href="http://${imp.ip}" target="_blank" class="hover:text-blue-500 transition-colors flex items-center gap-1">
-                            <i class="fas fa-link text-[8px]"></i> ${imp.ip}
-                        </a>
-                    </div>
-                </td>
-                <td class="p-5">
-                    <div class="font-bold text-slate-800 leading-tight">${imp.modelo}</div>
-                    <div class="text-[10px] text-slate-400 uppercase font-black tracking-tight">${imp.setor}</div>
-                </td>
-                <td class="p-5">${colSNMP}</td>
-                <td class="p-5">${colEstoque}</td>
-                <td class="p-5 rounded-r-[1.5rem]">
-                    <div class="flex justify-center gap-4">
-                        <button onclick="abrirChat(${idx})" class="relative text-slate-300 hover:text-blue-500 transition-colors text-lg">
-                            <i class="fas fa-comment-dots"></i>
-                            ${temNovas ? '<span class="badge-dot"></span>' : ''}
-                        </button>
-                        <button onclick="abrirModal(${idx})" class="text-slate-300 hover:text-amber-500 transition-colors text-lg"><i class="fas fa-pen-nib"></i></button>
-                        <button onclick="remover(${idx})" class="text-slate-300 hover:text-rose-500 transition-colors text-lg"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                </td>
-            `;
-            corpo.appendChild(row);
+        // Sincronização em tempo real
+        onValue(impressorasRef, (snapshot) => {
+            const data = snapshot.val();
+            impressoras = data || [];
+            renderizarLista();
         });
-    }
 
-    // --- EXPOSIÇÃO PARA O HTML (Necessário em scripts type="module") ---
-    window.abrirModal = (idx = -1) => {
-        idxAtivo = idx;
-        document.getElementById('modalCadastro').classList.remove('hidden');
-        if (idx !== -1) {
-            const i = impressoras[idx];
-            document.getElementById('editIndex').value = idx;
-            document.getElementById('modelo').value = i.modelo;
-            document.getElementById('selb').value = i.selb;
-            document.getElementById('ip').value = i.ip;
-            document.getElementById('setor').value = i.setor;
-            document.getElementById('tipo').value = i.tipo || 'Mono';
-            document.getElementById('estoqueMinimo').value = i.estoqueMinimo || 1;
-        } else {
-            document.getElementById('formImpressora').reset();
-            document.getElementById('editIndex').value = -1;
+        function salvarNoFirebase() {
+            set(impressorasRef, impressoras);
         }
-    };
 
-    window.fecharModal = () => document.getElementById('modalCadastro').classList.add('hidden');
+        function renderizarLista(listaFiltrada = null) {
+            const corpo = document.getElementById('lista-corpo');
+            if(!corpo) return;
+            corpo.innerHTML = '';
+            const itensParaExibir = listaFiltrada || impressoras;
 
-    document.getElementById('formImpressora').onsubmit = (e) => {
-        e.preventDefault();
-        const idx = parseInt(document.getElementById('editIndex').value);
-        const dados = {
-            tipo: document.getElementById('tipo').value,
-            estoqueMinimo: document.getElementById('estoqueMinimo').value,
-            modelo: document.getElementById('modelo').value,
-            selb: document.getElementById('selb').value.toUpperCase(),
-            ip: document.getElementById('ip').value,
-            setor: document.getElementById('setor').value,
-            chat: idx === -1 ? [] : (impressoras[idx].chat || []),
-            estoque: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].estoque || {k:0,c:0,m:0,y:0}),
-            niveis: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].niveis || {k:0,c:0,m:0,y:0}),
-            status: idx === -1 ? 'OFF' : impressoras[idx].status
+            itensParaExibir.forEach((imp) => {
+                const idx = impressoras.findIndex(i => i.selb === imp.selb);
+                const n = imp.niveis || {k:0, c:0, m:0, y:0};
+                const e = imp.estoque || {k:0, c:0, m:0, y:0};
+                const temNovas = imp.chat && imp.chat.some(m => m.autor === 'Usuario' && !m.lida);
+
+                const criarBarra = (letra, valor, classe, corBarra) => `
+                    <div class="flex items-center gap-2 mb-1 justify-end pr-4">
+                        <span class="cmyk-text ${classe} scale-75">${letra}</span>
+                        <div class="mini-bar-container"><div class="${corBarra}" style="width: ${valor}%; height: 100%;"></div></div>
+                        <span class="text-[9px] font-black w-7 text-left text-slate-500">${valor}%</span>
+                    </div>`;
+
+                const criarEstoque = (letra, qtd, classe) => `
+                    <div class="flex items-center gap-1 justify-center">
+                        <span class="cmyk-text ${classe} scale-75">${letra}</span>
+                        <span class="font-black text-slate-700 text-xs">: ${qtd}</span>
+                    </div>`;
+
+                let colSNMP = criarBarra('K', n.k, 'k-color', 'bg-black');
+                let colEstoque = criarEstoque('K', e.k, 'k-color');
+
+                if (imp.tipo === 'Color') {
+                    colSNMP += criarBarra('C', n.c, 'c-color', 'bg-cyan-400') + 
+                               criarBarra('M', n.m, 'm-color', 'bg-magenta-500') + 
+                               criarBarra('Y', n.y, 'y-color', 'bg-yellow-400');
+                    colEstoque = `<div class="grid grid-cols-2 gap-x-4">${criarEstoque('K', e.k, 'k-color')}${criarEstoque('C', e.c, 'c-color')}${criarEstoque('M', e.m, 'm-color')}${criarEstoque('Y', e.y, 'y-color')}</div>`;
+                }
+
+                const row = document.createElement('tr');
+                row.className = "bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all";
+                row.style.borderRadius = "1.5rem";
+
+                row.innerHTML = `
+                    <td class="p-5 text-slate-300 text-center rounded-l-[1.5rem]"><i class="fas fa-print"></i></td>
+                    <td class="p-5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full ${imp.status==='Online'?'bg-emerald-500 animate-pulse':'bg-rose-400'}"></span>
+                            <span class="font-black text-[10px] uppercase ${imp.status==='Online'?'text-emerald-600':'text-rose-500'}">${imp.status || 'OFF'}</span>
+                        </div>
+                    </td>
+                    <td class="p-5">
+                        <div class="font-mono font-black text-blue-600 text-sm tracking-tighter">${imp.selb}</div>
+                        <div class="text-[10px] text-slate-400 font-bold mt-1">${imp.ip}</div>
+                    </td>
+                    <td class="p-5">
+                        <div class="font-bold text-slate-800 leading-tight">${imp.modelo}</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-black tracking-tight">${imp.setor}</div>
+                    </td>
+                    <td class="p-5">${colSNMP}</td>
+                    <td class="p-5">${colEstoque}</td>
+                    <td class="p-5 rounded-r-[1.5rem]">
+                        <div class="flex justify-center gap-4">
+                            <button onclick="window.abrirChat(${idx})" class="relative text-slate-300 hover:text-blue-500 transition-colors text-lg">
+                                <i class="fas fa-comment-dots"></i>
+                                ${temNovas ? '<span class="badge-dot"></span>' : ''}
+                            </button>
+                            <button onclick="window.abrirModal(${idx})" class="text-slate-300 hover:text-amber-500 transition-colors text-lg"><i class="fas fa-pen-nib"></i></button>
+                            <button onclick="window.remover(${idx})" class="text-slate-300 hover:text-rose-500 transition-colors text-lg"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(row);
+            });
+        }
+
+        // --- EXPOSIÇÃO GLOBAL ---
+        window.abrirModal = (idx = -1) => {
+            idxAtivo = idx;
+            document.getElementById('modalCadastro').classList.remove('hidden');
+            if (idx !== -1) {
+                const i = impressoras[idx];
+                document.getElementById('editIndex').value = idx;
+                document.getElementById('modelo').value = i.modelo;
+                document.getElementById('selb').value = i.selb;
+                document.getElementById('ip').value = i.ip;
+                document.getElementById('setor').value = i.setor;
+                document.getElementById('tipo').value = i.tipo || 'Mono';
+                document.getElementById('estoqueMinimo').value = i.estoqueMinimo || 1;
+            } else {
+                document.getElementById('formImpressora').reset();
+                document.getElementById('editIndex').value = -1;
+            }
         };
-        if (idx === -1) impressoras.push(dados); else impressoras[idx] = dados;
-        salvarNoFirebase();
-        window.fecharModal();
-    };
 
-    window.remover = (i) => { if(confirm("Remover este equipamento?")) { impressoras.splice(i,1); salvarNoFirebase(); } };
-    
-    window.filtrarLista = () => {
-        const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-        if (termo === "") renderizarLista();
-        else renderizarLista(impressoras.filter(imp => imp.selb.toLowerCase().includes(termo)));
-    };
+        window.fecharModal = () => document.getElementById('modalCadastro').classList.add('hidden');
 
-    window.forcarAtualizacaoGeral = async () => {
-        const icon = document.getElementById('iconSync');
-        icon.classList.add('rotating');
-        await new Promise(r => setTimeout(r, 1000));
-        impressoras.forEach((imp, i) => {
-            impressoras[i].status = 'Online';
-            impressoras[i].niveis = { k: Math.floor(Math.random() * 100), c: Math.floor(Math.random() * 100), m: Math.floor(Math.random() * 100), y: Math.floor(Math.random() * 100) };
-        });
-        icon.classList.remove('rotating');
-        salvarNoFirebase();
-    };
+        document.getElementById('formImpressora').onsubmit = (e) => {
+            e.preventDefault();
+            const idx = parseInt(document.getElementById('editIndex').value);
+            const dados = {
+                tipo: document.getElementById('tipo').value,
+                estoqueMinimo: document.getElementById('estoqueMinimo').value,
+                modelo: document.getElementById('modelo').value,
+                selb: document.getElementById('selb').value.toUpperCase(),
+                ip: document.getElementById('ip').value,
+                setor: document.getElementById('setor').value,
+                chat: idx === -1 ? [] : (impressoras[idx].chat || []),
+                estoque: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].estoque || {k:0,c:0,m:0,y:0}),
+                niveis: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].niveis || {k:0,c:0,m:0,y:0}),
+                status: idx === -1 ? 'OFF' : impressoras[idx].status
+            };
+            if (idx === -1) impressoras.push(dados); else impressoras[idx] = dados;
+            salvarNoFirebase();
+            window.fecharModal();
+        };
 
-    // Chat
-    window.abrirChat = (idx) => {
-        idxAtivo = idx;
-        document.getElementById('chatNome').innerText = impressoras[idx].setor;
-        document.getElementById('modalChat').classList.remove('hidden');
-        if(impressoras[idx].chat) impressoras[idx].chat.forEach(m => { if(m.autor==='Usuario') m.lida=true; });
-        salvarNoFirebase();
-        atualizarBoxChat();
-    };
-    window.fecharChat = () => document.getElementById('modalChat').classList.add('hidden');
-    window.enviarMensagem = () => {
-        const input = document.getElementById('inputMsg');
-        if(!input.value.trim()) return;
-        if(!impressoras[idxAtivo].chat) impressoras[idxAtivo].chat = [];
-        impressoras[idxAtivo].chat.push({ autor: 'Tecnico', texto: input.value, data: new Date().toLocaleTimeString(), lida: false });
-        input.value = '';
-        salvarNoFirebase();
-        atualizarBoxChat();
-    };
-    function atualizarBoxChat() {
-        const box = document.getElementById('boxMensagens');
-        box.innerHTML = (impressoras[idxAtivo].chat || []).map(m => `<div class="msg ${m.autor === 'Tecnico' ? 'msg-tecnico' : 'msg-usuario'}">${m.texto}</div>`).join('');
-        box.scrollTop = box.scrollHeight;
-    }
-</script>
+        window.remover = (i) => { if(confirm("Remover?")) { impressoras.splice(i,1); salvarNoFirebase(); } };
+        
+        window.filtrarLista = () => {
+            const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
+            if (termo === "") renderizarLista();
+            else renderizarLista(impressoras.filter(imp => imp.selb.toLowerCase().includes(termo)));
+        };
+
+        window.forcarAtualizacaoGeral = async () => {
+            const icon = document.getElementById('iconSync');
+            icon.classList.add('rotating');
+            await new Promise(r => setTimeout(r, 1000));
+            impressoras.forEach((imp, i) => {
+                impressoras[i].status = 'Online';
+                impressoras[i].niveis = { k: Math.floor(Math.random()*100), c: Math.floor(Math.random()*100), m: Math.floor(Math.random()*100), y: Math.floor(Math.random()*100) };
+            });
+            icon.classList.remove('rotating');
+            salvarNoFirebase();
+        };
+
+        window.abrirChat = (idx) => {
+            idxAtivo = idx;
+            document.getElementById('chatNome').innerText = impressoras[idx].setor;
+            document.getElementById('modalChat').classList.remove('hidden');
+            if(impressoras[idx].chat) impressoras[idx].chat.forEach(m => { if(m.autor==='Usuario') m.lida=true; });
+            salvarNoFirebase();
+            atualizarBoxChat();
+        };
+        window.fecharChat = () => document.getElementById('modalChat').classList.add('hidden');
+        window.enviarMensagem = () => {
+            const input = document.getElementById('inputMsg');
+            if(!input.value.trim()) return;
+            if(!impressoras[idxAtivo].chat) impressoras[idxAtivo].chat = [];
+            impressoras[idxAtivo].chat.push({ autor: 'Tecnico', texto: input.value, data: new Date().toLocaleTimeString(), lida: false });
+            input.value = '';
+            salvarNoFirebase();
+            atualizarBoxChat();
+        };
+        function atualizarBoxChat() {
+            const box = document.getElementById('boxMensagens');
+            box.innerHTML = (impressoras[idxAtivo].chat || []).map(m => `<div class="msg ${m.autor === 'Tecnico' ? 'msg-tecnico' : 'msg-usuario'}">${m.texto}</div>`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
 </body>
 </html>
