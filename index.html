@@ -9,7 +9,7 @@
     <style>
         .cmyk-text {
             font-weight: 900;
-            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000;
             display: inline-block;
             min-width: 14px;
             text-align: center;
@@ -51,9 +51,14 @@
             </div>
 
             <div class="flex gap-3">
-                <button onclick="forcarAtualizacaoGeral()" class="bg-slate-100 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
+                <a href="usuario.html" target="_blank" title="Abrir Portal do Usuário" class="bg-emerald-50 text-emerald-600 p-4 rounded-2xl hover:bg-emerald-100 transition active:scale-95 flex items-center gap-2 font-bold text-xs border border-emerald-100">
+                    <i class="fas fa-external-link-alt"></i> PORTAL
+                </a>
+                
+                <button onclick="forcarAtualizacaoGeral()" title="Sincronizar SNMP" class="bg-slate-100 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
                     <i id="iconSync" class="fas fa-sync-alt text-slate-600"></i>
                 </button>
+                
                 <button onclick="abrirModal()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-extrabold shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95">
                     <i class="fas fa-plus mr-2"></i>NOVO CADASTRO
                 </button>
@@ -132,14 +137,10 @@
         function renderizarLista(listaFiltrada = null) {
             const corpo = document.getElementById('lista-corpo');
             corpo.innerHTML = '';
-            
-            // Se houver lista filtrada (busca), usa ela. Se não, usa a original.
             const itensParaExibir = listaFiltrada || impressoras;
 
             itensParaExibir.forEach((imp, originalIdx) => {
-                // Precisamos achar o índice real no array original para que as ações (edit/remover) funcionem corretamente após filtrar
                 const idx = impressoras.findIndex(i => i.selb === imp.selb);
-                
                 const n = imp.niveis || {k:0, c:0, m:0, y:0};
                 const e = imp.estoque || {k:0, c:0, m:0, y:0};
                 const temNovas = imp.chat && imp.chat.some(m => m.autor === 'Usuario' && !m.lida);
@@ -170,7 +171,7 @@
                 const row = document.createElement('tr');
                 row.className = "draggable-row bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all border border-transparent";
                 row.style.borderRadius = "1.5rem";
-                row.setAttribute('draggable', listaFiltrada ? 'false' : 'true'); // Desativa drag durante a pesquisa
+                row.setAttribute('draggable', listaFiltrada ? 'false' : 'true');
                 row.setAttribute('data-index', idx);
                 
                 if (!listaFiltrada) {
@@ -217,18 +218,12 @@
             });
         }
 
-        // --- NOVA FUNÇÃO DE FILTRO ---
         function filtrarLista() {
             const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-            if (termo === "") {
-                renderizarLista();
-            } else {
-                const filtradas = impressoras.filter(imp => imp.selb.toLowerCase().includes(termo));
-                renderizarLista(filtradas);
-            }
+            if (termo === "") renderizarLista();
+            else renderizarLista(impressoras.filter(imp => imp.selb.toLowerCase().includes(termo)));
         }
 
-        // --- FUNÇÕES DE CONTROLE ---
         function abrirModal(idx = -1) {
             idxAtivo = idx;
             document.getElementById('modalCadastro').classList.remove('hidden');
@@ -303,7 +298,6 @@
             salvar(); renderizarLista();
         }
 
-        // --- DRAG & DROP ---
         function handleDragStart(e) { dragSrcEl = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
         function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); return false; }
         function handleDrop(e) {
