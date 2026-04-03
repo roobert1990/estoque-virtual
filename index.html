@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Central de Insumos CMYK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .cmyk-text {
+            font-weight: 900;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            display: inline-block;
+            min-width: 14px;
+            text-align: center;
+        }
+        .c-color { color: #00ffff; } .m-color { color: #ff00ff; }
+        .y-color { color: #ffff00; } .k-color { color: #ffffff; }
+
+        .rotating { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .mini-bar-container { width: 60px; height: 10px; background: #e2e8f0; border-radius: 5px; border: 1px solid #000; overflow: hidden; }
+        .chat-container { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 15px; background: #f8fafc; }
+        .msg { max-width: 85%; padding: 10px; border-radius: 12px; font-size: 13px; }
+        .msg-tecnico { align-self: flex-end; background-color: #2563eb; color: white; }
+        .msg-usuario { align-self: flex-start; background-color: #e2e8f0; color: #1e293b; }
+        .badge-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; }
+
+        .row-spacer { border-spacing: 0 12px; border-collapse: separate; }
+        .draggable-row { cursor: grab; transition: all 0.2s ease; }
+        .draggable-row:active { cursor: grabbing; }
+        .dragging { opacity: 0.4; transform: scale(0.98); }
+    </style>
+</head>
+<body class="bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 gap-6">
+            <div class="flex-shrink-0">
+                <h1 class="text-3xl font-black tracking-tight">
+                    CONTROLE <span class="cmyk-text c-color">C</span><span class="cmyk-text m-color">M</span><span class="cmyk-text y-color">Y</span><span class="cmyk-text k-color">K</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Inventory Management System</p>
+            </div>
+
+            <div class="flex-1 max-w-md w-full relative">
+                <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="inputPesquisa" onkeyup="filtrarLista()" placeholder="Pesquisar por SELB..." 
+                class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 pl-14 pr-5 outline-none focus:border-blue-500 font-bold transition-all text-slate-700">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="forcarAtualizacaoGeral()" class="bg-slate-100 p-4 rounded-2xl hover:bg-slate-200 transition active:scale-95">
+                    <i id="iconSync" class="fas fa-sync-alt text-slate-600"></i>
+                </button>
+                <button onclick="abrirModal()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-extrabold shadow-lg shadow-blue-200 hover:bg-blue-700 transition active:scale-95">
+                    <i class="fas fa-plus mr-2"></i>NOVO CADASTRO
+                </button>
+            </div>
+        </header>
+
+        <div class="overflow-x-auto">
+            <table class="w-full row-spacer">
+                <thead>
+                    <tr class="text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                        <th class="px-6 py-2 w-10"></th>
+                        <th class="px-6 py-2">Status</th>
+                        <th class="px-6 py-2">Identificação</th>
+                        <th class="px-6 py-2">Localização</th>
+                        <th class="px-6 py-2 text-center">Níveis SNMP</th>
+                        <th class="px-6 py-2 text-center">Estoque Físico</th>
+                        <th class="px-6 py-2 text-center">Gerenciar</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-corpo"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="modalCadastro" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden border border-white">
+            <div class="bg-slate-900 p-8 text-white flex justify-between items-center">
+                <h2 id="tituloModal" class="font-black uppercase tracking-tight text-xl">Configuração</h2>
+                <button onclick="fecharModal()" class="text-3xl leading-none hover:text-red-400 transition">&times;</button>
+            </div>
+            <form id="formImpressora" class="p-8 space-y-5">
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-1">Configurações Base</label>
+                        <div class="flex gap-2 mt-1">
+                            <select id="tipo" class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 outline-none focus:border-blue-500 font-bold">
+                                <option value="Mono">Monocromática</option>
+                                <option value="Color">Colorida (CMYK)</option>
+                            </select>
+                            <input type="number" id="estoqueMinimo" placeholder="Mín." required class="w-24 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 outline-none focus:border-blue-500 font-bold text-center">
+                        </div>
+                    </div>
+                    <div class="col-span-2"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">Modelo</label><input type="text" id="modelo" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 mt-1 font-bold"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase ml-1">SELB</label><input type="text" id="selb" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 mt-1 font-bold uppercase"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase ml-1">IP</label><input type="text" id="ip" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 mt-1 font-bold"></div>
+                    <div class="col-span-2"><label class="text-[10px] font-black text-slate-400 uppercase ml-1">Setor / Departamento</label><input type="text" id="setor" required class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 mt-1 font-bold"></div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-black shadow-xl shadow-blue-100 hover:bg-blue-700 transition active:scale-95">SALVAR EQUIPAMENTO</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalChat" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+            <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                <h3 id="chatNome" class="font-bold uppercase tracking-tight">Suporte Setorial</h3>
+                <div class="flex gap-4">
+                    <button onclick="limparChat()" class="hover:text-red-200 transition"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="fecharChat()" class="text-3xl">&times;</button>
+                </div>
+            </div>
+            <div id="boxMensagens" class="chat-container"></div>
+            <div class="p-4 bg-slate-50 border-t flex gap-2">
+                <input type="text" id="inputMsg" onkeyup="if(event.key==='Enter') enviarMensagem()" placeholder="Digite sua resposta..." class="flex-1 bg-white border-2 border-slate-200 rounded-2xl px-5 outline-none focus:border-blue-500 font-medium">
+                <button onclick="enviarMensagem()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100 active:scale-90 transition"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let impressoras = JSON.parse(localStorage.getItem('estoque_toners')) || [];
+        let idxAtivo = -1;
+        let dragSrcEl = null;
+
+        function renderizarLista(listaFiltrada = null) {
+            const corpo = document.getElementById('lista-corpo');
+            corpo.innerHTML = '';
+            
+            // Se houver lista filtrada (busca), usa ela. Se não, usa a original.
+            const itensParaExibir = listaFiltrada || impressoras;
+
+            itensParaExibir.forEach((imp, originalIdx) => {
+                // Precisamos achar o índice real no array original para que as ações (edit/remover) funcionem corretamente após filtrar
+                const idx = impressoras.findIndex(i => i.selb === imp.selb);
+                
+                const n = imp.niveis || {k:0, c:0, m:0, y:0};
+                const e = imp.estoque || {k:0, c:0, m:0, y:0};
+                const temNovas = imp.chat && imp.chat.some(m => m.autor === 'Usuario' && !m.lida);
+
+                const criarBarra = (letra, valor, classe, corBarra) => `
+                    <div class="flex items-center gap-2 mb-1 justify-end pr-4">
+                        <span class="cmyk-text ${classe} scale-75">${letra}</span>
+                        <div class="mini-bar-container"><div class="${corBarra}" style="width: ${valor}%; height: 100%;"></div></div>
+                        <span class="text-[9px] font-black w-7 text-left text-slate-500">${valor}%</span>
+                    </div>`;
+
+                const criarEstoque = (letra, qtd, classe) => `
+                    <div class="flex items-center gap-1 justify-center">
+                        <span class="cmyk-text ${classe} scale-75">${letra}</span>
+                        <span class="font-black text-slate-700 text-xs">: ${qtd}</span>
+                    </div>`;
+
+                let colSNMP = criarBarra('K', n.k, 'k-color', 'bg-black');
+                let colEstoque = criarEstoque('K', e.k, 'k-color');
+
+                if (imp.tipo === 'Color') {
+                    colSNMP += criarBarra('C', n.c, 'c-color', 'bg-cyan-400') + 
+                               criarBarra('M', n.m, 'm-color', 'bg-magenta-500') + 
+                               criarBarra('Y', n.y, 'y-color', 'bg-yellow-400');
+                    colEstoque = `<div class="grid grid-cols-2 gap-x-4">${criarEstoque('K', e.k, 'k-color')}${criarEstoque('C', e.c, 'c-color')}${criarEstoque('M', e.m, 'm-color')}${criarEstoque('Y', e.y, 'y-color')}</div>`;
+                }
+
+                const row = document.createElement('tr');
+                row.className = "draggable-row bg-white shadow-sm hover:shadow-md hover:border-blue-200 transition-all border border-transparent";
+                row.style.borderRadius = "1.5rem";
+                row.setAttribute('draggable', listaFiltrada ? 'false' : 'true'); // Desativa drag durante a pesquisa
+                row.setAttribute('data-index', idx);
+                
+                if (!listaFiltrada) {
+                    row.addEventListener('dragstart', handleDragStart);
+                    row.addEventListener('dragover', handleDragOver);
+                    row.addEventListener('drop', handleDrop);
+                    row.addEventListener('dragend', handleDragEnd);
+                }
+
+                row.innerHTML = `
+                    <td class="p-5 text-slate-300 text-center rounded-l-[1.5rem]"><i class="fas fa-grip-vertical"></i></td>
+                    <td class="p-5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full ${imp.status==='Online'?'bg-emerald-500 animate-pulse':'bg-rose-400'}"></span>
+                            <span class="font-black text-[10px] uppercase ${imp.status==='Online'?'text-emerald-600':'text-rose-500'}">${imp.status || 'OFF'}</span>
+                        </div>
+                    </td>
+                    <td class="p-5">
+                        <div class="font-mono font-black text-blue-600 text-sm tracking-tighter">${imp.selb}</div>
+                        <div class="text-[10px] text-slate-400 font-bold mt-1">
+                            <a href="http://${imp.ip}" target="_blank" class="hover:text-blue-500 transition-colors flex items-center gap-1">
+                                <i class="fas fa-link text-[8px]"></i> ${imp.ip}
+                            </a>
+                        </div>
+                    </td>
+                    <td class="p-5">
+                        <div class="font-bold text-slate-800 leading-tight">${imp.modelo}</div>
+                        <div class="text-[10px] text-slate-400 uppercase font-black tracking-tight">${imp.setor}</div>
+                    </td>
+                    <td class="p-5">${colSNMP}</td>
+                    <td class="p-5">${colEstoque}</td>
+                    <td class="p-5 rounded-r-[1.5rem]">
+                        <div class="flex justify-center gap-4">
+                            <button onclick="abrirChat(${idx})" class="relative text-slate-300 hover:text-blue-500 transition-colors text-lg">
+                                <i class="fas fa-comment-dots"></i>
+                                ${temNovas ? '<span class="badge-dot"></span>' : ''}
+                            </button>
+                            <button onclick="abrirModal(${idx})" class="text-slate-300 hover:text-amber-500 transition-colors text-lg"><i class="fas fa-pen-nib"></i></button>
+                            <button onclick="remover(${idx})" class="text-slate-300 hover:text-rose-500 transition-colors text-lg"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                `;
+                corpo.appendChild(row);
+            });
+        }
+
+        // --- NOVA FUNÇÃO DE FILTRO ---
+        function filtrarLista() {
+            const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
+            if (termo === "") {
+                renderizarLista();
+            } else {
+                const filtradas = impressoras.filter(imp => imp.selb.toLowerCase().includes(termo));
+                renderizarLista(filtradas);
+            }
+        }
+
+        // --- FUNÇÕES DE CONTROLE ---
+        function abrirModal(idx = -1) {
+            idxAtivo = idx;
+            document.getElementById('modalCadastro').classList.remove('hidden');
+            if (idx !== -1) {
+                const i = impressoras[idx];
+                document.getElementById('editIndex').value = idx;
+                document.getElementById('modelo').value = i.modelo;
+                document.getElementById('selb').value = i.selb;
+                document.getElementById('ip').value = i.ip;
+                document.getElementById('setor').value = i.setor;
+                document.getElementById('tipo').value = i.tipo || 'Mono';
+                document.getElementById('estoqueMinimo').value = i.estoqueMinimo || 1;
+            } else {
+                document.getElementById('formImpressora').reset();
+                document.getElementById('editIndex').value = -1;
+            }
+        }
+
+        function fecharModal() { document.getElementById('modalCadastro').classList.add('hidden'); }
+
+        document.getElementById('formImpressora').onsubmit = (e) => {
+            e.preventDefault();
+            const idx = parseInt(document.getElementById('editIndex').value);
+            const dados = {
+                tipo: document.getElementById('tipo').value,
+                estoqueMinimo: document.getElementById('estoqueMinimo').value,
+                modelo: document.getElementById('modelo').value,
+                selb: document.getElementById('selb').value.toUpperCase(),
+                ip: document.getElementById('ip').value,
+                setor: document.getElementById('setor').value,
+                chat: idx === -1 ? [] : (impressoras[idx].chat || []),
+                estoque: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].estoque || {k:0,c:0,m:0,y:0}),
+                niveis: idx === -1 ? {k:0,c:0,m:0,y:0} : (impressoras[idx].niveis || {k:0,c:0,m:0,y:0}),
+                status: idx === -1 ? 'OFF' : impressoras[idx].status
+            };
+            if (idx === -1) impressoras.push(dados); else impressoras[idx] = dados;
+            salvar(); fecharModal(); renderizarLista();
+        };
+
+        function remover(i) { if(confirm("Remover este equipamento?")) { impressoras.splice(i,1); salvar(); renderizarLista(); } }
+
+        function abrirChat(idx) {
+            idxAtivo = idx;
+            document.getElementById('chatNome').innerText = impressoras[idx].setor;
+            document.getElementById('modalChat').classList.remove('hidden');
+            if(impressoras[idx].chat) impressoras[idx].chat.forEach(m => { if(m.autor==='Usuario') m.lida=true; });
+            salvar(); atualizarBoxChat(); renderizarLista();
+        }
+        function fecharChat() { document.getElementById('modalChat').classList.add('hidden'); }
+        function enviarMensagem() {
+            const input = document.getElementById('inputMsg');
+            if(!input.value.trim()) return;
+            if(!impressoras[idxAtivo].chat) impressoras[idxAtivo].chat = [];
+            impressoras[idxAtivo].chat.push({ autor: 'Tecnico', texto: input.value, data: new Date().toLocaleTimeString(), lida: false });
+            input.value = ''; salvar(); atualizarBoxChat();
+        }
+        function atualizarBoxChat() {
+            const box = document.getElementById('boxMensagens');
+            box.innerHTML = (impressoras[idxAtivo].chat || []).map(m => `<div class="msg ${m.autor === 'Tecnico' ? 'msg-tecnico' : 'msg-usuario'}">${m.texto}</div>`).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function forcarAtualizacaoGeral() {
+            const icon = document.getElementById('iconSync');
+            icon.classList.add('rotating');
+            await new Promise(r => setTimeout(r, 1000));
+            impressoras.forEach((imp, i) => {
+                impressoras[i].status = 'Online';
+                impressoras[i].niveis = { k: Math.floor(Math.random() * 100), c: Math.floor(Math.random() * 100), m: Math.floor(Math.random() * 100), y: Math.floor(Math.random() * 100) };
+            });
+            icon.classList.remove('rotating');
+            salvar(); renderizarLista();
+        }
+
+        // --- DRAG & DROP ---
+        function handleDragStart(e) { dragSrcEl = this; this.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+        function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); return false; }
+        function handleDrop(e) {
+            if (e.stopPropagation) e.stopPropagation();
+            const targetIndex = parseInt(this.getAttribute('data-index'));
+            const sourceIndex = parseInt(dragSrcEl.getAttribute('data-index'));
+            if (sourceIndex !== targetIndex) {
+                const movedItem = impressoras.splice(sourceIndex, 1)[0];
+                impressoras.splice(targetIndex, 0, movedItem);
+                salvar(); renderizarLista();
+            }
+            return false;
+        }
+        function handleDragEnd() { this.classList.remove('dragging'); }
+
+        function salvar() { localStorage.setItem('estoque_toners', JSON.stringify(impressoras)); }
+        renderizarLista();
+    </script>
+</body>
+</html>

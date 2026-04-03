@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Setor CMYK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .input-qty { width: 50px; text-align: center; font-weight: 900; font-size: 1.25rem; }
+        .alerta-estoque { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+        .abaixo-minimo { color: #ef4444 !important; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .chat-box { height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 15px; }
+        .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+        .msg-tecnico { align-self: flex-start; background: white; border: 1px solid #e2e8f0; }
+        .msg-usuario { align-self: flex-end; background: #10b981; color: white; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border">
+        <div id="telaBusca" class="p-8 text-center">
+            <div class="bg-emerald-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl"><i class="fas fa-boxes"></i></div>
+            <h1 class="text-2xl font-bold mb-8 text-slate-800">Estoque do Setor</h1>
+            <input type="text" id="inputSelb" onkeyup="if(event.key==='Enter') buscar()" placeholder="DIGITE O SELB (Ex: YO73)" class="w-full p-5 border-2 rounded-2xl text-center text-2xl font-black uppercase outline-none focus:border-emerald-500 mb-4">
+            <button onclick="buscar()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold text-lg shadow-lg">Acessar Painel</button>
+        </div>
+
+        <div id="telaPainel" class="hidden p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-emerald-100 text-emerald-600 p-3 rounded-xl"><i class="fas fa-print"></i></div>
+                <div>
+                    <h2 id="displaySetor" class="font-bold text-slate-800 leading-none"></h2>
+                    <p id="displaySelb" class="text-[10px] text-slate-400 font-mono mt-1 uppercase"></p>
+                </div>
+            </div>
+
+            <div id="containerContadores" class="space-y-3 mb-6"></div>
+
+            <div class="border-t pt-4">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Dúvidas/Suporte TI</p>
+                <div id="chatBox" class="chat-box mb-2"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="msgInput" onkeyup="if(event.key==='Enter') enviar()" placeholder="Mensagem..." class="flex-1 border-2 rounded-xl px-4 outline-none text-sm">
+                    <button onclick="enviar()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button onclick="salvar()" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg">Salvar Dados</button>
+                <button onclick="location.reload()" class="bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold px-6">Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let impressoras = JSON.parse(localStorage.getItem('estoque_toners')) || [];
+        let idxAtivo = -1;
+
+        function buscar() {
+            const s = document.getElementById('inputSelb').value.trim().toUpperCase();
+            idxAtivo = impressoras.findIndex(i => i.selb === s);
+            if(idxAtivo === -1) return alert("SELB não encontrado.");
+
+            const imp = impressoras[idxAtivo];
+            document.getElementById('displaySetor').innerText = imp.setor;
+            document.getElementById('displaySelb').innerText = `${imp.modelo} | ${imp.selb}`;
+            
+            renderizarContadores(imp);
+            atualizarChat();
+            document.getElementById('telaBusca').classList.add('hidden');
+            document.getElementById('telaPainel').classList.remove('hidden');
+        }
+
+        function renderizarContadores(imp) {
+            const container = document.getElementById('containerContadores');
+            const est = imp.estoque || {k:0,c:0,m:0,y:0};
+            const min = parseInt(imp.estoqueMinimo) || 0;
+            
+            const criarItem = (label, corClasse, id) => {
+                const valor = est[id] || 0;
+                const isBaixo = valor < min;
+                return `
+                    <div class="flex justify-between items-center p-3 bg-white rounded-xl border-2 ${isBaixo ? 'border-red-100' : 'border-slate-100'} shadow-sm">
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full ${corClasse} border border-black/20"></div>
+                                <span class="font-bold text-slate-700 text-xs">${label}</span>
+                            </div>
+                            <span class="alerta-estoque mt-1 ${isBaixo ? 'abaixo-minimo' : ''}">Mínimo ideal: ${min} un</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="ajustar('${id}', -1)" class="w-8 h-8 bg-slate-100 rounded-lg font-bold">-</button>
+                            <span id="q_${id}" class="input-qty ${isBaixo ? 'text-red-500' : 'text-emerald-600'}">${valor}</span>
+                            <button onclick="ajustar('${id}', 1)" class="w-8 h-8 ${corClasse} text-white rounded-lg font-bold">+</button>
+                        </div>
+                    </div>`;
+            };
+
+            let html = criarItem('TONER PRETO (K)', 'bg-black', 'k');
+            if(imp.tipo === 'Color') {
+                html += criarItem('TONER CIANO (C)', 'bg-cyan-400', 'c') +
+                        criarItem('TONER MAGENTA (M)', 'bg-magenta-500', 'm') +
+                        criarItem('TONER AMARELO (Y)', 'bg-yellow-400', 'y');
+            }
+            container.innerHTML = html;
+        }
+
+        function ajustar(cor, v) {
+            const el = document.getElementById(`q_${cor}`);
+            let novoValor = Math.max(0, parseInt(el.innerText) + v);
+            el.innerText = novoValor;
+            
+            const min = parseInt(impressoras[idxAtivo].estoqueMinimo);
+            const alerta = el.closest('div').parentElement.querySelector('.alerta-estoque');
+            
+            if (novoValor < min) {
+                el.classList.add('text-red-500');
+                alerta.classList.add('abaixo-minimo');
+            } else {
+                el.classList.remove('text-red-500');
+                alerta.classList.remove('abaixo-minimo');
+            }
+        }
+
+        function enviar() {
+            const input = document.getElementById('msgInput');
+            if(!input.value.trim()) return;
+            if(!impressoras[idxAtivo].chat) impressoras[idxAtivo].chat = [];
+            impressoras[idxAtivo].chat.push({ autor: 'Usuario', texto: input.value, data: new Date().toLocaleTimeString(), lida: false });
+            input.value = ''; atualizarChat();
+            localStorage.setItem('estoque_toners', JSON.stringify(impressoras));
+        }
+
+        function atualizarChat() {
+            const box = document.getElementById('chatBox');
+            box.innerHTML = (impressoras[idxAtivo].chat || []).map(m => `
+                <div class="msg ${m.autor === 'Usuario' ? 'msg-usuario' : 'msg-tecnico'}">${m.texto}</div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function salvar() {
+            const imp = impressoras[idxAtivo];
+            imp.estoque.k = parseInt(document.getElementById('q_k').innerText);
+            if(imp.tipo === 'Color') {
+                imp.estoque.c = parseInt(document.getElementById('q_c').innerText);
+                imp.estoque.m = parseInt(document.getElementById('q_m').innerText);
+                imp.estoque.y = parseInt(document.getElementById('q_y').innerText);
+            }
+            localStorage.setItem('estoque_toners', JSON.stringify(impressoras));
+            alert("Estoque atualizado!");
+            location.reload();
+        }
+    </script>
+</body>
+</html>
