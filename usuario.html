@@ -3,63 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal do Usuário - Insumos CMYK</title>
+    <title>RONDA.NET - Portal do Usuário</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .cmyk-logo { font-weight: 900; text-shadow: 1px 1px 0 #000; }
-        .c-color { color: #00ffff; } .m-color { color: #ff00ff; }
-        .y-color { color: #ffff00; } .k-color { color: #333; }
-        .chat-box { height: 250px; overflow-y: auto; display: flex; flex-direction: column; padding: 10px; background: #f1f5f9; border-radius: 1rem; }
+        .chat-box { height: 180px; overflow-y: auto; display: flex; flex-direction: column; padding: 10px; background: #f1f5f9; border-radius: 1rem; scroll-behavior: smooth; }
+        .cmyk-badge { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: white; font-size: 14px; flex-shrink: 0; }
+        .bg-cyan { background-color: #00ffff; color: #000; }
+        .bg-magenta { background-color: #ff00ff; color: #fff; }
+        .bg-yellow { background-color: #ffff00; color: #000; }
+        .bg-black-cmyk { background-color: #000; color: #fff; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .alert-low { color: #f43f5e; animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
 
     <div id="searchBox" class="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-w-md border border-slate-200">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-black tracking-tight uppercase">
-                <span class="c-color">C</span><span class="m-color">M</span><span class="y-color">Y</span><span class="k-color">K</span> SERVICE
-            </h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consulta de Insumos e Suporte</p>
+            <h1 class="text-3xl font-black tracking-tighter italic">RONDA<span class="text-blue-600">.NET</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gestão de toners</p>
         </div>
-
         <div class="space-y-4">
             <label class="block text-[10px] font-black text-slate-500 uppercase ml-2">Código da Impressora (SELB)</label>
-            <input type="text" id="inputSelb" placeholder="Ex: SELB001" 
-                   class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 outline-none focus:border-blue-500 font-black text-xl text-center uppercase transition-all">
-            
-            <button onclick="window.buscarImpressora()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 transition active:scale-95">
-                VERIFICAR STATUS
+            <input type="text" id="inputSelb" placeholder="EX: VN52" autocomplete="off" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 outline-none focus:border-blue-500 font-black text-xl text-center uppercase transition-all">
+            <button id="btnBuscar" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 transition active:scale-95 flex items-center justify-center gap-2">
+                <i class="fas fa-search"></i> ACESSAR PAINEL
             </button>
         </div>
     </div>
 
     <div id="resultado" class="hidden bg-white p-6 rounded-[2.5rem] shadow-xl w-full max-w-lg border border-slate-200">
-        <div class="flex justify-between items-start mb-6">
-            <button onclick="window.voltarBusca()" class="text-slate-400 hover:text-slate-600 transition"><i class="fas fa-arrow-left text-xl"></i></button>
+        <div class="flex justify-between items-center mb-6">
+            <button id="btnVoltar" class="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition"><i class="fas fa-arrow-left"></i></button>
             <div class="text-right">
-                <h2 id="resSelb" class="font-black text-blue-600 text-2xl leading-none">SELB000</h2>
-                <p id="resModelo" class="text-xs font-bold text-slate-400">Modelo do Equipamento</p>
+                <h2 id="resSelb" class="font-black text-blue-600 text-2xl leading-none tracking-tight italic">SELB---</h2>
+                <p id="resModelo" class="text-[10px] font-bold text-slate-400 uppercase italic">Modelo</p>
             </div>
         </div>
 
-        <div class="bg-slate-50 rounded-3xl p-5 mb-6 border border-slate-100">
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Localização Atual</p>
-            <p id="resSetor" class="font-bold text-slate-700 uppercase">Setor Não Identificado</p>
+        <div class="bg-slate-900 rounded-[2rem] p-6 mb-4 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-2">
+                    <i class="fas fa-layer-group text-blue-400"></i> Estoque Físico Local
+                </h3>
+                <span id="minimoInfo" class="text-[9px] bg-white/10 text-white px-2 py-1 rounded-lg font-bold">Mín: 0</span>
+            </div>
+            <div id="containerEstoque" class="space-y-3"></div>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-100 rounded-[2rem] p-6 mb-6">
+            <h3 class="text-amber-700 text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+                <i class="fas fa-recycle text-amber-500"></i> Logística de Vazios (Coleta)
+            </h3>
+            <div class="flex items-center justify-between bg-white p-3 rounded-2xl">
+                <span class="text-amber-900 font-bold text-xs uppercase">Cartuchos p/ Coleta</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="document.getElementById('inputVazios').stepDown()" class="w-8 h-8 bg-amber-100 text-amber-700 rounded-lg font-bold">-</button>
+                    <input type="number" id="inputVazios" value="0" min="0" class="w-12 bg-transparent text-center font-black text-lg outline-none text-amber-800">
+                    <button type="button" onclick="document.getElementById('inputVazios').stepUp()" class="w-8 h-8 bg-amber-100 text-amber-700 rounded-lg font-bold">+</button>
+                </div>
+            </div>
+            <button id="btnSalvarGeral" class="w-full mt-4 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase hover:bg-black transition">
+                CONFIRMAR E SALVAR DADOS
+            </button>
         </div>
 
         <div class="space-y-3">
-            <label class="text-[10px] font-black text-slate-500 uppercase ml-2 flex items-center gap-2">
-                <i class="fas fa-headset text-blue-500"></i> Dúvidas ou Problemas?
-            </label>
-            <div id="chatUsuario" class="chat-box mb-3">
-                </div>
+            <label class="text-[10px] font-black text-slate-500 uppercase ml-2 flex items-center gap-2"><i class="fas fa-comment-dots text-blue-500"></i> Suporte ao Equipamento</label>
+            <div id="chatUsuario" class="chat-box"></div>
             <div class="flex gap-2">
-                <input type="text" id="inputDuvida" placeholder="Escreva sua mensagem..." 
-                       class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-sm font-medium">
-                <button onclick="window.enviarDuvida()" class="bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-blue-700 active:scale-90 transition">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <input type="text" id="inputDuvida" placeholder="Descreva o problema..." class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-sm font-medium">
+                <button id="btnEnviarDuvida" class="bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-blue-700 transition"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -85,98 +101,102 @@
         let impressoras = [];
         let impAtivaIdx = -1;
 
-        // Ouve mudanças do Firebase em tempo real
         onValue(impressorasRef, (snapshot) => {
             const data = snapshot.val();
             impressoras = data || [];
-            // Se o chat estiver aberto, atualiza as mensagens
             if (impAtivaIdx !== -1) {
                 atualizarListaMensagens();
+                gerarControlesEstoque(impressoras[impAtivaIdx]);
+                document.getElementById('inputVazios').value = impressoras[impAtivaIdx].vazios || 0;
             }
         });
 
-        // --- FUNÇÕES EXPOSTAS PARA O HTML ---
-
-        window.buscarImpressora = () => {
-            const selbBusca = document.getElementById('inputSelb').value.toUpperCase().trim();
-            const searchBox = document.getElementById('searchBox');
-            const resultadoDiv = document.getElementById('resultado');
-
-            if (!selbBusca) {
-                alert("Digite um SELB para buscar.");
-                return;
-            }
-
-            const index = impressoras.findIndex(i => i.selb === selbBusca);
-
-            if (index !== -1) {
-                impAtivaIdx = index;
-                const imp = impressoras[index];
-                
-                searchBox.classList.add('hidden');
-                resultadoDiv.classList.remove('hidden');
-
-                document.getElementById('resModelo').innerText = imp.modelo;
+        const buscarImpressora = () => {
+            const val = document.getElementById('inputSelb').value.toUpperCase().trim();
+            const idx = impressoras.findIndex(i => i.selb === val);
+            if (idx !== -1) {
+                impAtivaIdx = idx;
+                const imp = impressoras[idx];
+                document.getElementById('searchBox').classList.add('hidden');
+                document.getElementById('resultado').classList.remove('hidden');
                 document.getElementById('resSelb').innerText = imp.selb;
-                document.getElementById('resSetor').innerText = imp.setor;
-                
+                document.getElementById('resModelo').innerText = imp.modelo;
+                document.getElementById('minimoInfo').innerText = `Mín: ${imp.estoqueMinimo || 0}`;
+                document.getElementById('inputVazios').value = imp.vazios || 0;
+                gerarControlesEstoque(imp);
                 atualizarListaMensagens();
-            } else {
-                alert("Equipamento não encontrado no sistema.");
-            }
+            } else { alert("Equipamento não localizado."); }
         };
 
-        window.voltarBusca = () => {
-            impAtivaIdx = -1;
-            document.getElementById('searchBox').classList.remove('hidden');
-            document.getElementById('resultado').classList.add('hidden');
-            document.getElementById('inputSelb').value = '';
+        const gerarControlesEstoque = (imp) => {
+            const container = document.getElementById('containerEstoque');
+            const est = imp.estoque || { k: 0, c: 0, m: 0, y: 0 };
+            const min = parseInt(imp.estoqueMinimo || 0);
+            const cores = imp.tipo === 'Color' ? 
+                [{c:'k', n:'Black', b:'bg-black-cmyk'}, {c:'c', n:'Cyan', b:'bg-cyan'}, {c:'m', n:'Magenta', b:'bg-magenta'}, {c:'y', n:'Yellow', b:'bg-yellow'}] : 
+                [{c:'k', n:'Preto', b:'bg-black-cmyk'}];
+
+            container.innerHTML = cores.map(cor => {
+                const qtd = est[cor.c] || 0;
+                const isLow = qtd <= min;
+                return `
+                <div class="flex items-center justify-between bg-white/5 p-3 rounded-2xl border ${isLow ? 'border-rose-500/50' : 'border-white/5'}">
+                    <div class="flex items-center gap-3">
+                        <div class="cmyk-badge ${cor.b}">${cor.c.toUpperCase()}</div>
+                        <span class="text-white font-bold text-xs uppercase ${isLow ? 'text-rose-400' : ''}">${cor.n}</span>
+                    </div>
+                    <div class="flex items-center gap-1 bg-black rounded-xl p-1">
+                        <button type="button" class="btn-minus w-8 h-8 text-white" data-cor="${cor.c}">-</button>
+                        <input type="number" id="est_${cor.c}" value="${qtd}" class="w-12 bg-transparent text-center font-black text-lg outline-none ${isLow ? 'text-rose-500 alert-low' : 'text-white'}">
+                        <button type="button" class="btn-plus w-8 h-8 text-white" data-cor="${cor.c}">+</button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.querySelectorAll('.btn-plus').forEach(btn => btn.onclick = () => { const i = document.getElementById(`est_${btn.dataset.cor}`); i.value = parseInt(i.value || 0) + 1; });
+            container.querySelectorAll('.btn-minus').forEach(btn => btn.onclick = () => { const i = document.getElementById(`est_${btn.dataset.cor}`); const v = parseInt(i.value || 0); if (v > 0) i.value = v - 1; });
         };
 
-        window.enviarDuvida = () => {
+        const salvarTudo = () => {
+            const estoque = {
+                k: parseInt(document.getElementById('est_k')?.value || 0),
+                c: parseInt(document.getElementById('est_c')?.value || 0),
+                m: parseInt(document.getElementById('est_m')?.value || 0),
+                y: parseInt(document.getElementById('est_y')?.value || 0)
+            };
+            const vazios = parseInt(document.getElementById('inputVazios').value || 0);
+            
+            impressoras[impAtivaIdx].estoque = estoque;
+            impressoras[impAtivaIdx].vazios = vazios;
+            
+            set(impressorasRef, impressoras).then(() => alert("Dados salvos com sucesso!"));
+        };
+
+        const enviarDuvida = () => {
             const input = document.getElementById('inputDuvida');
-            const texto = input.value.trim();
-
-            if (!texto || impAtivaIdx === -1) return;
-
-            if (!impressoras[impAtivaIdx].chat) {
-                impressoras[impAtivaIdx].chat = [];
-            }
-
-            impressoras[impAtivaIdx].chat.push({
-                autor: 'Usuario',
-                texto: texto,
-                data: new Date().toLocaleTimeString(),
-                lida: false
-            });
-
-            // Salva no Firebase
+            if (!input.value.trim()) return;
+            if (!impressoras[impAtivaIdx].chat) impressoras[impAtivaIdx].chat = [];
+            impressoras[impAtivaIdx].chat.push({ autor: 'Usuario', texto: input.value.trim(), data: new Date().toLocaleTimeString(), lida: false });
             set(impressorasRef, impressoras);
             input.value = '';
-            // onValue cuidará de atualizar a tela automaticamente
         };
 
-        function atualizarListaMensagens() {
+        const atualizarListaMensagens = () => {
             const box = document.getElementById('chatUsuario');
-            const mensagens = impressoras[impAtivaIdx].chat || [];
-            
-            box.innerHTML = mensagens.map(m => `
-                <div class="p-3 rounded-2xl text-sm mb-2 max-w-[85%] ${
-                    m.autor === 'Usuario' 
-                    ? 'bg-blue-600 text-white self-end ml-auto rounded-tr-none' 
-                    : 'bg-slate-200 text-slate-700 self-start mr-auto rounded-tl-none'
-                }">
+            box.innerHTML = (impressoras[impAtivaIdx].chat || []).map(m => `
+                <div class="p-3 rounded-2xl text-sm mb-2 max-w-[85%] ${m.autor === 'Usuario' ? 'bg-blue-600 text-white self-end ml-auto rounded-tr-none' : 'bg-slate-200 text-slate-700 self-start mr-auto rounded-tl-none'}">
                     <p>${m.texto}</p>
-                    <span class="text-[8px] opacity-50 block mt-1">${m.data}</span>
-                </div>
-            `).join('');
-            
+                </div>`).join('');
             box.scrollTop = box.scrollHeight;
-        }
+        };
 
-        // Permitir busca ao apertar Enter
-        document.getElementById('inputSelb').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.buscarImpressora();
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btnBuscar').addEventListener('click', buscarImpressora);
+            document.getElementById('btnSalvarGeral').addEventListener('click', salvarTudo);
+            document.getElementById('btnEnviarDuvida').addEventListener('click', enviarDuvida);
+            document.getElementById('btnVoltar').addEventListener('click', () => { location.reload(); });
+            document.getElementById('inputSelb').addEventListener('keydown', (e) => { if (e.key === 'Enter') buscarImpressora(); });
+            document.getElementById('inputSelb').focus();
         });
     </script>
 </body>
