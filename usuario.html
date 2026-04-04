@@ -3,158 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal do Setor CMYK</title>
+    <title>Portal do Usuário - Insumos CMYK</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .input-qty { width: 50px; text-align: center; font-weight: 900; font-size: 1.25rem; }
-        .alerta-estoque { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
-        .abaixo-minimo { color: #ef4444 !important; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .chat-box { height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f1f5f9; border-radius: 15px; }
-        .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 13px; }
-        .msg-tecnico { align-self: flex-start; background: white; border: 1px solid #e2e8f0; }
-        .msg-usuario { align-self: flex-end; background: #10b981; color: white; }
+        .cmyk-logo { font-weight: 900; text-shadow: 1px 1px 0 #000; }
+        .c-color { color: #00ffff; } .m-color { color: #ff00ff; }
+        .y-color { color: #ffff00; } .k-color { color: #333; }
+        .chat-box { height: 250px; overflow-y: auto; display: flex; flex-direction: column; padding: 10px; background: #f1f5f9; border-radius: 1rem; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border">
-        <div id="telaBusca" class="p-8 text-center">
-            <div class="bg-emerald-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl"><i class="fas fa-boxes"></i></div>
-            <h1 class="text-2xl font-bold mb-8 text-slate-800">Estoque do Setor</h1>
-            <input type="text" id="inputSelb" onkeyup="if(event.key==='Enter') buscar()" placeholder="DIGITE O SELB (Ex: YO73)" class="w-full p-5 border-2 rounded-2xl text-center text-2xl font-black uppercase outline-none focus:border-emerald-500 mb-4">
-            <button onclick="buscar()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-bold text-lg shadow-lg">Acessar Painel</button>
+    <div id="searchBox" class="bg-white p-8 rounded-[2.5rem] shadow-xl w-full max-w-md border border-slate-200">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-black tracking-tight uppercase">
+                <span class="c-color">C</span><span class="m-color">M</span><span class="y-color">Y</span><span class="k-color">K</span> SERVICE
+            </h1>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consulta de Insumos e Suporte</p>
         </div>
 
-        <div id="telaPainel" class="hidden p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="bg-emerald-100 text-emerald-600 p-3 rounded-xl"><i class="fas fa-print"></i></div>
-                <div>
-                    <h2 id="displaySetor" class="font-bold text-slate-800 leading-none"></h2>
-                    <p id="displaySelb" class="text-[10px] text-slate-400 font-mono mt-1 uppercase"></p>
-                </div>
+        <div class="space-y-4">
+            <label class="block text-[10px] font-black text-slate-500 uppercase ml-2">Código da Impressora (SELB)</label>
+            <input type="text" id="inputSelb" placeholder="Ex: SELB001" 
+                   class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 outline-none focus:border-blue-500 font-black text-xl text-center uppercase transition-all">
+            
+            <button onclick="window.buscarImpressora()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg shadow-blue-100 hover:bg-blue-700 transition active:scale-95">
+                VERIFICAR STATUS
+            </button>
+        </div>
+    </div>
+
+    <div id="resultado" class="hidden bg-white p-6 rounded-[2.5rem] shadow-xl w-full max-w-lg border border-slate-200">
+        <div class="flex justify-between items-start mb-6">
+            <button onclick="window.voltarBusca()" class="text-slate-400 hover:text-slate-600 transition"><i class="fas fa-arrow-left text-xl"></i></button>
+            <div class="text-right">
+                <h2 id="resSelb" class="font-black text-blue-600 text-2xl leading-none">SELB000</h2>
+                <p id="resModelo" class="text-xs font-bold text-slate-400">Modelo do Equipamento</p>
             </div>
+        </div>
 
-            <div id="containerContadores" class="space-y-3 mb-6"></div>
+        <div class="bg-slate-50 rounded-3xl p-5 mb-6 border border-slate-100">
+            <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Localização Atual</p>
+            <p id="resSetor" class="font-bold text-slate-700 uppercase">Setor Não Identificado</p>
+        </div>
 
-            <div class="border-t pt-4">
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Dúvidas/Suporte TI</p>
-                <div id="chatBox" class="chat-box mb-2"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="msgInput" onkeyup="if(event.key==='Enter') enviar()" placeholder="Mensagem..." class="flex-1 border-2 rounded-xl px-4 outline-none text-sm">
-                    <button onclick="enviar()" class="bg-emerald-600 text-white px-4 py-3 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+        <div class="space-y-3">
+            <label class="text-[10px] font-black text-slate-500 uppercase ml-2 flex items-center gap-2">
+                <i class="fas fa-headset text-blue-500"></i> Dúvidas ou Problemas?
+            </label>
+            <div id="chatUsuario" class="chat-box mb-3">
                 </div>
-            </div>
-
-            <div class="flex gap-3 mt-8">
-                <button onclick="salvar()" class="flex-1 bg-slate-800 text-white py-4 rounded-2xl font-bold shadow-lg">Salvar Dados</button>
-                <button onclick="location.reload()" class="bg-slate-100 text-slate-500 py-4 rounded-2xl font-bold px-6">Sair</button>
+            <div class="flex gap-2">
+                <input type="text" id="inputDuvida" placeholder="Escreva sua mensagem..." 
+                       class="flex-1 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:border-blue-500 text-sm font-medium">
+                <button onclick="window.enviarDuvida()" class="bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-blue-700 active:scale-90 transition">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // USE O MESMO CONFIG DO SEU ADMIN.HTML
-    const firebaseConfig = {
-       apiKey: "AIzaSyDIsYmxPmdl0t0G9gnhXLvU_soJOadcHnM",
-       authDomain: "controle-cmyk.firebaseapp.com",
-       databaseURL: "https://controle-cmyk-default-rtdb.firebaseio.com",
-       projectId: "controle-cmyk",
-       storageBucket: "controle-cmyk.firebasestorage.app",
-       messagingSenderId: "96391765939",
-       appId: "1:96391765939:web:dd4cee41d484f60adcf5c6"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIsYmxPmdl0t0G9gnhXLvU_soJOadcHnM",
+            authDomain: "controle-cmyk.firebaseapp.com",
+            databaseURL: "https://controle-cmyk-default-rtdb.firebaseio.com",
+            projectId: "controle-cmyk",
+            storageBucket: "controle-cmyk.firebasestorage.app",
+            messagingSenderId: "96391765939",
+            appId: "1:96391765939:web:dd4cee41d484f60adcf5c6"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const impressorasRef = ref(db, 'estoque_toners');
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const impressorasRef = ref(db, 'estoque_toners');
 
-    let impressoras = [];
-    let impAtivaIdx = -1;
+        let impressoras = [];
+        let impAtivaIdx = -1;
 
-    // Sincroniza os dados do Firebase em tempo real
-    onValue(impressorasRef, (snapshot) => {
-        const data = snapshot.val();
-        impressoras = data || [];
-        console.log("Dados carregados do Firebase:", impressoras.length, "itens");
-    });
-
-    // Função de busca que o botão chama
-    window.buscarImpressora = () => {
-        const selbBusca = document.getElementById('inputSelb').value.toUpperCase().trim();
-        const resultadoDiv = document.getElementById('resultado');
-        const searchBox = document.getElementById('searchBox');
-
-        if (!selbBusca) return;
-
-        // Procura no array que veio do Firebase
-        const index = impressoras.findIndex(i => i.selb === selbBusca);
-
-        if (index !== -1) {
-            impAtivaIdx = index;
-            const imp = impressoras[index];
-            
-            // Esconde a busca e mostra o resultado
-            searchBox.classList.add('hidden');
-            resultadoDiv.classList.remove('hidden');
-
-            // Preenche os dados na tela
-            document.getElementById('resModelo').innerText = imp.modelo;
-            document.getElementById('resSelb').innerText = imp.selb;
-            document.getElementById('resSetor').innerText = imp.setor;
-            
-            // Atualiza o chat se houver
-            atualizarListaMensagens();
-        } else {
-            alert("Equipamento não encontrado. Verifique o SELB digitado.");
-        }
-    };
-
-    window.voltarBusca = () => {
-        document.getElementById('searchBox').classList.remove('hidden');
-        document.getElementById('resultado').classList.add('hidden');
-        document.getElementById('inputSelb').value = '';
-    };
-
-    window.enviarDuvida = () => {
-        const input = document.getElementById('inputDuvida');
-        const texto = input.value.trim();
-
-        if (!texto || impAtivaIdx === -1) return;
-
-        if (!impressoras[impAtivaIdx].chat) {
-            impressoras[impAtivaIdx].chat = [];
-        }
-
-        // Adiciona a mensagem do usuário
-        impressoras[impAtivaIdx].chat.push({
-            autor: 'Usuario',
-            texto: texto,
-            data: new Date().toLocaleTimeString(),
-            lida: false
+        // Ouve mudanças do Firebase em tempo real
+        onValue(impressorasRef, (snapshot) => {
+            const data = snapshot.val();
+            impressoras = data || [];
+            // Se o chat estiver aberto, atualiza as mensagens
+            if (impAtivaIdx !== -1) {
+                atualizarListaMensagens();
+            }
         });
 
-        // Salva de volta no Firebase (isso fará o Admin receber o alerta!)
-        set(impressorasRef, impressoras);
-        
-        input.value = '';
-        atualizarListaMensagens();
-    };
+        // --- FUNÇÕES EXPOSTAS PARA O HTML ---
 
-    function atualizarListaMensagens() {
-        const box = document.getElementById('chatUsuario');
-        const mensagens = impressoras[impAtivaIdx].chat || [];
-        box.innerHTML = mensagens.map(m => `
-            <div class="p-3 rounded-2xl text-sm ${m.autor === 'Usuario' ? 'bg-blue-600 text-white self-end ml-auto' : 'bg-slate-100 text-slate-700 self-start mr-auto'} mb-2 max-w-[80%]">
-                ${m.texto}
-            </div>
-        `).join('');
-        box.scrollTop = box.scrollHeight;
-    }
-</script>
+        window.buscarImpressora = () => {
+            const selbBusca = document.getElementById('inputSelb').value.toUpperCase().trim();
+            const searchBox = document.getElementById('searchBox');
+            const resultadoDiv = document.getElementById('resultado');
+
+            if (!selbBusca) {
+                alert("Digite um SELB para buscar.");
+                return;
+            }
+
+            const index = impressoras.findIndex(i => i.selb === selbBusca);
+
+            if (index !== -1) {
+                impAtivaIdx = index;
+                const imp = impressoras[index];
+                
+                searchBox.classList.add('hidden');
+                resultadoDiv.classList.remove('hidden');
+
+                document.getElementById('resModelo').innerText = imp.modelo;
+                document.getElementById('resSelb').innerText = imp.selb;
+                document.getElementById('resSetor').innerText = imp.setor;
+                
+                atualizarListaMensagens();
+            } else {
+                alert("Equipamento não encontrado no sistema.");
+            }
+        };
+
+        window.voltarBusca = () => {
+            impAtivaIdx = -1;
+            document.getElementById('searchBox').classList.remove('hidden');
+            document.getElementById('resultado').classList.add('hidden');
+            document.getElementById('inputSelb').value = '';
+        };
+
+        window.enviarDuvida = () => {
+            const input = document.getElementById('inputDuvida');
+            const texto = input.value.trim();
+
+            if (!texto || impAtivaIdx === -1) return;
+
+            if (!impressoras[impAtivaIdx].chat) {
+                impressoras[impAtivaIdx].chat = [];
+            }
+
+            impressoras[impAtivaIdx].chat.push({
+                autor: 'Usuario',
+                texto: texto,
+                data: new Date().toLocaleTimeString(),
+                lida: false
+            });
+
+            // Salva no Firebase
+            set(impressorasRef, impressoras);
+            input.value = '';
+            // onValue cuidará de atualizar a tela automaticamente
+        };
+
+        function atualizarListaMensagens() {
+            const box = document.getElementById('chatUsuario');
+            const mensagens = impressoras[impAtivaIdx].chat || [];
+            
+            box.innerHTML = mensagens.map(m => `
+                <div class="p-3 rounded-2xl text-sm mb-2 max-w-[85%] ${
+                    m.autor === 'Usuario' 
+                    ? 'bg-blue-600 text-white self-end ml-auto rounded-tr-none' 
+                    : 'bg-slate-200 text-slate-700 self-start mr-auto rounded-tl-none'
+                }">
+                    <p>${m.texto}</p>
+                    <span class="text-[8px] opacity-50 block mt-1">${m.data}</span>
+                </div>
+            `).join('');
+            
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Permitir busca ao apertar Enter
+        document.getElementById('inputSelb').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.buscarImpressora();
+        });
+    </script>
 </body>
 </html>
